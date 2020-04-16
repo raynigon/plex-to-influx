@@ -6,7 +6,7 @@ COPY requirements.txt /src/
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-ADD plexcollector /src/plexcollector
+ADD plex-to-influx /src/plex-to-influx
 COPY config.ini /src/config.ini
 
 CMD ["python3", "plex-to-influx"]
