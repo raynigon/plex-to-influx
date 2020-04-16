@@ -28,9 +28,7 @@ jobs:
       run: |
         pip install pylint
         # stop the build if there are Python syntax errors or undefined names
-        pylint
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        pylint
+        pylint plex-to-influx 
 #    - name: Test with pytest
 #      run: |
 #        pip install pytest
