@@ -1,6 +1,6 @@
 **plex-to-influx**
 ------------------------------
-![Python application](https://github.com/raynigon/plex-to-influx/workflows/Python%20application/badge.svg)
+![Linting](https://github.com/raynigon/plex-to-influx/workflows/Python%20application/badge.svg)
 [
 ![Docker Build Status](https://img.shields.io/docker/cloud/build/raynigon/plex-to-influx)
 ![Docker Pulls](https://img.shields.io/docker/pulls/raynigon/plex-to-influx)
