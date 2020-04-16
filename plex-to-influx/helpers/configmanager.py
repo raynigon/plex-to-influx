@@ -32,7 +32,7 @@ class Config:
 
     def __init__(self):
         # General
-        self.delay = 5
+        self.delay = "5"
         self.report_combined = True
 
         # InfluxDB
@@ -74,7 +74,7 @@ class ConfigManager:
     def _load_config_values(self):
 
         # General
-        self.config.delay = self.__configfile["GENERAL"].getint("Delay", fallback=2)
+        self.config.delay = self.__configfile["GENERAL"].getint("Delay", fallback="2")
         self.config.report_combined = self.__configfile["GENERAL"].get("ReportCombined", fallback=True)
 
         # InfluxDB

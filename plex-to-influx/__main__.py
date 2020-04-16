@@ -55,6 +55,7 @@ class PlexInfluxdbCollector:
 
     def run(self):
         self.__log.info("Starting Monitoring Loop")
+        delay = int(self.config.delay)
         while True:
             measurements = []
             measurements += self.get_recently_added()
@@ -63,7 +64,7 @@ class PlexInfluxdbCollector:
             self.influx_client.write_points(measurements)
             if self.single_run:
                 return
-            time.sleep(self.config.delay)
+            time.sleep(delay)
 
 def main():
     parser = argparse.ArgumentParser(
