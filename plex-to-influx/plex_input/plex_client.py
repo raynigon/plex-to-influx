@@ -113,7 +113,7 @@ class PlexClient:
                 "playing": 0 if player.state == "paused" else 1,
                 "bitrate": media.bitrate,
                 "duration": stream.duration,
-                "view_progress": stream.viewOffset/stream.duration*100.0, # TODO remove the cast to int
+                "view_progress": stream.viewOffset/stream.duration*100.0,
                 "transcoding_video": 1 if transcode.videoDecision == "transcode" else 0,
                 "transcoding_audio": 1 if transcode.videoDecision == "transcode" else 0,
                 "transcoding_throttled": transcode.throttled,
