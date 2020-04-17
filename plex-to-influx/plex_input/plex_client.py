@@ -77,41 +77,53 @@ class PlexClient:
         active_streams = filter(lambda stream: len(stream.session) > 0, active_streams)
         self.__log.debug("Processing Active Streams")
 
+        stream_count = 0
         for stream in active_streams:
+            stream_count += 1
             player = stream.players[0]
             user = stream.usernames[0]
+            media = stream.media[0]
+            transcode = stream.transcodeSessions[0] if stream.transcodeSessions else None
+            if len(stream.session) == 0:
+                return
             session_id = stream.session[0].id
-            transcode = stream.transcodeSessions if stream.transcodeSessions else None
             if session_id in self.__active_streams:
                 start_time = self.__active_streams[session_id]["start_time"]
             else:
                 start_time = time.time()
                 self.__active_streams[session_id] = {}
                 self.__active_streams[session_id]["start_time"] = start_time
-            media_type = stream.type
             # Build the title. TV and Music Have a root title plus episode/track name.  Movies don"t
             if hasattr(stream, "grandparentTitle"):
                 full_title = stream.grandparentTitle + " - " + stream.title
             else:
                 full_title = stream.title
-            if media_type != "track":
-                resolution = stream.media[0].videoResolution
-            else:
-                resolution = str(stream.media[0].bitrate) + "Kbps"
-            measurement = PlexMeasurement("now_playing", self.__host)
+            
+            measurement = PlexMeasurement("active_streams", self.__host)
+            measurement.append_tag("player_name", player.title)
             measurement.append_tag("player_address", player.address)
             measurement.append_tag("session_id", session_id)
+            measurement.append_tag("title", full_title)
+            measurement.append_tag("user", user)
+            measurement.append_tag("media_type", stream.type)
+            if stream.type != "track":
+                measurement.append_tag("resolution", media.videoResolution)
             measurement.fields = {
-                "stream_title": full_title,
-                "player": player.title,
-                "state": player.state,
-                "user": user,
-                "resolution": resolution,
-                "media_type": media_type,
-                "playback": "transcode" if transcode else "direct",
-                "duration": time.time() - start_time,
+                "start_time": start_time,
+                "playing": 0 if player.state == "paused" else 1,
+                "bitrate": media.bitrate,
+                "duration": stream.duration,
+                "view_progress": stream.viewOffset/stream.duration*100.0, # TODO remove the cast to int
+                "transcoding_video": 1 if transcode.videoDecision == "transcode" else 0,
+                "transcoding_audio": 1 if transcode.videoDecision == "transcode" else 0,
+                "transcoding_throttled": transcode.throttled,
+                "transcoding_progress": transcode.progress,
             }
             measurements.append(measurement)
+        measurement = PlexMeasurement("active_stream_count", self.__host)
+        measurement.fields["count"] = stream_count
+        measurements.append(measurement)
+
         current_streams = map(lambda stream: stream.session[0].id, active_streams)
         remove_keys = []
         for session_id, _ in self.__active_streams.items():
