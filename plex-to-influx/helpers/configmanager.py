@@ -18,7 +18,8 @@ ENV_PROPERTY_MAPPING = {
     "PDC_INFLUXDB_USERNAME": "influx_user",
     "PDC_INFLUXDB_PASSWORD": "influx_password",
 
-    "PDC_PLEX_SERVERS": "plex_server_addresses",
+    "PDC_PLEX_HOSTNAME": "plex_hostname",
+    "PDC_PLEX_ADDRESS": "plex_server_address",
     "PDC_PLEX_USERNAME": "plex_user",
     "PDC_PLEX_PASSWORD": "plex_password",
     "PDC_PLEX_HTTPS": "plex_https",
@@ -50,7 +51,8 @@ class Config:
         self.plex_https = False
         self.conn_security = "http"
         self.plex_verify_ssl = False
-        self.plex_server_addresses = []
+        self.plex_server_address = ""
+        self.plex_hostname = None
 
         #Logging
         self.logging_level = "critical"
@@ -91,7 +93,8 @@ class ConfigManager:
         self.config.plex_password = self.__configfile["PLEX"].get("Password", raw=True)
         self.config.plex_https = self.__configfile["PLEX"].getboolean("HTTPS", fallback=False)
         self.config.plex_verify_ssl = self.__configfile["PLEX"].getboolean("Verify_SSL", fallback=False)
-        self.config.plex_server_addresses = self.__configfile["PLEX"]["Servers"]
+        self.config.plex_server_address = self.__configfile["PLEX"]["Address"]
+        self.config.plex_hostname = self.__configfile["PLEX"].get("Hostname", fallback=self.config.plex_server_address)
 
         #Logging
         self.config.logging_level = self.__configfile["LOGGING"].get("Level", fallback="critical")
@@ -102,8 +105,7 @@ class ConfigManager:
                 continue
             setattr(self.config, value, os.environ[key])
 
-        if self.config.plex_server_addresses == "":
+        if self.config.plex_server_address == "":
             raise Exception("Missing Plex Server Addresses")
-        self.config.plex_server_addresses = self.config.plex_server_addresses.replace(" ", "").split(",")
         self.config.conn_security = "https" if self.config.plex_https else "http"
         self.config.logging_level = self.config.logging_level.upper()
