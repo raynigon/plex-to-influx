@@ -39,7 +39,7 @@ class PlexClient:
             if hasattr(item, "grandparentTitle"):
                 title = f"{item.grandparentTitle} - {item.title}"
             # Create Measurement
-            measurement = PlexMeasurement("recently_added", self.__host)
+            measurement = PlexMeasurement("plex_recently_added", self.__host)
             measurement.fields = {
                 "title": title,
                 "media_type": media_type,
@@ -52,7 +52,7 @@ class PlexClient:
         measurements = []
         libs = self.__connection.library.sections()
         for library in libs:
-            measurement = PlexMeasurement("libraries", self.__host)
+            measurement = PlexMeasurement("plex_libraries", self.__host)
             measurement.append_tag("type", library.type)
             measurement.fields = {
                 "title": library.title,
@@ -99,7 +99,7 @@ class PlexClient:
             else:
                 full_title = stream.title
             
-            measurement = PlexMeasurement("active_streams", self.__host)
+            measurement = PlexMeasurement("plex_active_streams", self.__host)
             measurement.append_tag("player_name", player.title)
             measurement.append_tag("player_address", player.address)
             measurement.append_tag("session_id", session_id)

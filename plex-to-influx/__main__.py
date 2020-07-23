@@ -1,17 +1,19 @@
+"""
+contains the PlexInfluxdbCollector and the main function
+"""
 import time
 import logging
 import argparse
-from typing import List
 
 from helpers import ConfigManager
-from plex_input import PlexTvPlatform, PlexClient, PlexMeasurement
+from plex_input import PlexTvPlatform, PlexClient
 from output.influxdb import PlexInfluxDBClient
 
 class PlexInfluxdbCollector:
 
     def __init__(self, single_run=False):
         self.__log = logging.getLogger(self.__class__.__name__)
-        self.plex_clients: List[PlexClient] = []
+        self.plex_client: PlexClient = None
         self.single_run = single_run
         config_manager = ConfigManager("config.ini")
         self.config = config_manager.config
@@ -19,48 +21,23 @@ class PlexInfluxdbCollector:
         self.influx_client = PlexInfluxDBClient(self.config)
         self.influx_client.connect()
 
-        self._build_server_list()
-
-    def _build_server_list(self):
-        """
-        Build a list of plexapi objects from the servers provided in the config
-        :return:
-        """
-        for server in self.config.plex_server_addresses:
-            base_url = "{}://{}:32400".format(self.config.conn_security, server)
-            token = self.get_auth_token(self.config.plex_user, self.config.plex_password)
-            self.plex_clients.append(PlexClient(base_url, server, token))
+        # Plex
+        base_url = "{}://{}:32400".format(self.config.conn_security, self.config.plex_server_address)
+        token = self.get_auth_token(self.config.plex_user, self.config.plex_password)
+        self.plex_client = PlexClient(base_url, self.config.plex_hostname, token)
 
     def get_auth_token(self, username, password):
         plex_platform = PlexTvPlatform()
         return plex_platform.fetch_auth_token(username, password)
-
-    def get_active_streams(self) -> List[PlexMeasurement]:
-        measurements = []
-        for client in self.plex_clients:
-            measurements += client.get_active_streams()
-        return measurements
-
-    def get_library_data(self) -> List[PlexMeasurement]:
-        measurements = []
-        for client in self.plex_clients:
-            measurements += client.get_library_data()
-        return measurements
-
-    def get_recently_added(self) -> List[PlexMeasurement]:
-        measurements = []
-        for client in self.plex_clients:
-            measurements += client.get_recently_added()
-        return measurements
 
     def run(self):
         self.__log.info("Starting Monitoring Loop")
         delay = int(self.config.delay)
         while True:
             measurements = []
-            measurements += self.get_recently_added()
-            measurements += self.get_library_data()
-            measurements += self.get_active_streams()
+            measurements += self.plex_client.get_recently_added()
+            measurements += self.plex_client.get_library_data()
+            measurements += self.plex_client.get_active_streams()
             self.influx_client.write_points(measurements)
             if self.single_run:
                 return
